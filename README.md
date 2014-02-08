@@ -26,6 +26,8 @@ haarcascade_frontalface_default.xml file. This is necessary for the face detecti
 To-Do
 -------
 
+- [X] Image capture
+- [X] Facial detection
 - [ ] Add facial expression learning
 - [ ] Add hooks for emotion reactions
 - [ ] Distributed node communication
