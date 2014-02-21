@@ -23,6 +23,12 @@ After installing OpenCV, you'll have to modify mirror.py so that the
 FACE_CASCADE_XML string points to the correct
 haarcascade_frontalface_default.xml file. This is necessary for the face detection.
 
+In a terminal, run:
+
+    python mirror.py
+    
+It should open a new window to your computer's webcam and show you a bounding box around any faces in the image.
+
 To-Do
 -------
 
