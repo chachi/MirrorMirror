@@ -1,10 +1,8 @@
+#!/usr/bin/env python
 import cv2
 import cv
 
-# NOTE: This is highly system dependent. You will probably need to
-# change this.
-FACE_CASCADE_XML = '/usr/local/Cellar/opencv/2.4.6.1/share/' + \
-                   'OpenCV/haarcascades/haarcascade_frontalface_default.xml'
+FACE_CASCADE_XML = 'haarcascade_frontalface_default.xml'
 
 
 def mirror_mirror():
