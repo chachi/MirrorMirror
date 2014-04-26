@@ -5,6 +5,13 @@ import cv
 FACE_CASCADE_XML = 'haarcascade_frontalface_default.xml'
 
 
+def show_face(face_bounds, img):
+    x, y, w, h = face_bounds
+    my_face = img[y:y+h, x:x+w, :]
+    if my_face.shape[0] != 0:
+        cv2.imshow('mirror', my_face)
+
+
 def mirror_mirror():
     # Load the face detector details
     face_cascade = cv2.CascadeClassifier(FACE_CASCADE_XML)
@@ -19,10 +26,11 @@ def mirror_mirror():
 
         gray = cv2.cvtColor(img, cv.CV_BGR2GRAY)
         faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-        for (x, y, w, h) in faces:
-            cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
+        if len(faces) == 0:
+            continue
 
-        cv2.imshow('mirror', img)
+        for face in faces:
+            show_face(face, img)
         cv2.waitKey(1)
 
 if __name__ == '__main__':
