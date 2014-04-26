@@ -12,6 +12,7 @@ import string
 
 import logging
 import matplotlib.pyplot as pl
+import cPickle as pickle
 import re
 from itertools import izip, chain
 
@@ -24,7 +25,6 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.decomposition import RandomizedPCA
 from sklearn.svm import SVC
-from sklearn.externals import joblib
 
 # Display progress logs on stdout
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
@@ -182,17 +182,17 @@ def plot_results(pca, X_test, y_pred, y_test):
 def gen_classifier(X_train, y_train):
     if isfile(PCA_PICKLE):
         print "Loading PCA from file"
-        pca = joblib.load(PCA_PICKLE)
+        pca = pickle.load(open(PCA_PICKLE, 'rb'))
     else:
         print "Computing PCA and saving"
         pca = compute_pca(X_train, y_train)
-        joblib.dump(pca, PCA_PICKLE)
+        pickle.dump(pca, open(PCA_PICKLE, 'wb'))
 
     print "Projecting the input data on the eigenfaces orthonormal basis"
     X_train_pca = pca.transform(X_train)
 
     if isfile(CLASSIFIER_PICKLE):
-        clf = joblib.load(CLASSIFIER_PICKLE)
+        clf = pickle.load(open(CLASSIFIER_PICKLE, 'rb'))
     else:
         print "Fitting the classifier to the training set"
         param_grid = {
@@ -204,7 +204,7 @@ def gen_classifier(X_train, y_train):
         clf = clf.fit(X_train_pca, y_train)
         print "Best estimator found by grid search:"
         print clf.best_estimator_
-        joblib.dump(clf, CLASSIFIER_PICKLE)
+        pickle.dump(clf, open(CLASSIFIER_PICKLE, 'wb'))
     return pca, clf
 
 
@@ -226,16 +226,17 @@ def evaluate(pca, clf, X_test, y_test):
 
 def main():
     if isfile(DATA_PICKLE) and isfile(LABELS_PICKLE):
-        X, y = joblib.load(DATA_PICKLE), joblib.load(LABELS_PICKLE)
+        X = pickle.load(open(DATA_PICKLE, 'rb'))
+        y = pickle.load(open(LABELS_PICKLE, 'rb'))
     else:
         X, y = load_data((H, W))
-        joblib.dump(X, DATA_PICKLE)
-        joblib.dump(y, LABELS_PICKLE)
+        pickle.dump(X, open(DATA_PICKLE, 'wb'))
+        pickle.dump(y, open(LABELS_PICKLE, 'wb'))
 
     print "Total dataset size:"
     print "n_samples: %d" % X.shape[0]
     print "n_features: %d" % X.shape[1]
-    print "N_CLASSES: %d" % N_CLASSES
+    print "n_classes: %d" % N_CLASSES
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
 
