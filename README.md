@@ -34,7 +34,7 @@ To-Do
 
 - [X] Image capture
 - [X] Facial detection
-- [ ] Add facial expression learning
+- [X] Add facial expression learning
 - [ ] Add hooks for emotion reactions
 - [ ] Distributed node communication
 
