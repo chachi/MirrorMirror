@@ -43,9 +43,7 @@ EMOTIONS = {0: "neutral",
             6: "sadness",
             7: "surprise"}
 FACE_CASCADE_XML = 'haarcascade_frontalface_default.xml'
-EYE_CASCADE_XML = 'haarcascade_eye.xml'
 face_cascade = cv2.CascadeClassifier(FACE_CASCADE_XML)
-eye_cascade = cv2.CascadeClassifier(EYE_CASCADE_XML)
 
 DATA_PICKLE = 'x.pkl'
 LABELS_PICKLE = 'y.pkl'
@@ -99,12 +97,7 @@ def detect_and_scale_face(img):
         if w != h:
             print "UNSQUARE FACE DETECTED"
             os.abort()
-        face_img = img[y:y+h, x:x+w]
-        #eyes = eye_cascade.detectMultiScale(face_img, 1.1, 2)
-        #if len(eyes) < 2:
-            #continue
-
-        scaled = resize(face_img, (LEARN_IMG_SIZE, LEARN_IMG_SIZE))
+        scaled = resize(img[y:y+h, x:x+w], (LEARN_IMG_SIZE, LEARN_IMG_SIZE))
         out.append(scaled)
 
     return out
