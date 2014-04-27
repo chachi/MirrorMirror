@@ -16,8 +16,12 @@ import cPickle as pickle
 import re
 from itertools import izip, chain
 
+import matplotlib
+matplotlib.use('MacOSX')
+
 import numpy as np
 import skimage.io as io
+import skimage.exposure as exposure
 from skimage.transform import resize
 from sklearn.cross_validation import train_test_split
 from sklearn.grid_search import GridSearchCV
@@ -39,7 +43,9 @@ EMOTIONS = {0: "neutral",
             6: "sadness",
             7: "surprise"}
 FACE_CASCADE_XML = 'haarcascade_frontalface_default.xml'
+EYE_CASCADE_XML = 'haarcascade_eye.xml'
 face_cascade = cv2.CascadeClassifier(FACE_CASCADE_XML)
+eye_cascade = cv2.CascadeClassifier(EYE_CASCADE_XML)
 
 DATA_PICKLE = 'x.pkl'
 LABELS_PICKLE = 'y.pkl'
@@ -49,7 +55,7 @@ CLASSIFIER_PICKLE = 'clf.pkl'
 HAPPY_LABEL = 1
 OTHER_LABEL = 0
 LEARN_IMG_SIZE = 64
-N_COMPONENTS = 150
+N_COMPONENTS = 15
 TARGET_NAMES = ('other', 'happy')
 N_CLASSES = len(TARGET_NAMES)
 H, W = (LEARN_IMG_SIZE,) * 2
@@ -93,8 +99,14 @@ def detect_and_scale_face(img):
         if w != h:
             print "UNSQUARE FACE DETECTED"
             os.abort()
+        face_img = img[y:y+h, x:x+w]
+        #eyes = eye_cascade.detectMultiScale(face_img, 1.1, 2)
+        #if len(eyes) < 2:
+            #continue
 
-        out.append(resize(img[y:y+h, x:x+w], (LEARN_IMG_SIZE, LEARN_IMG_SIZE)))
+        scaled = resize(face_img, (LEARN_IMG_SIZE, LEARN_IMG_SIZE))
+        out.append(scaled)
+
     return out
 
 
@@ -133,6 +145,17 @@ account for relative pixel positions.
     return X, y
 
 
+def load_data_or_unpickle():
+    if isfile(DATA_PICKLE) and isfile(LABELS_PICKLE):
+        X = pickle.load(open(DATA_PICKLE, 'rb'))
+        y = pickle.load(open(LABELS_PICKLE, 'rb'))
+    else:
+        X, y = load_data((H, W))
+        pickle.dump(X, open(DATA_PICKLE, 'wb'))
+        pickle.dump(y, open(LABELS_PICKLE, 'wb'))
+    return X, y
+
+
 def compute_pca(X_train, y_train):
     """Compute a PCA (eigenfaces) on the face dataset (treated as
      unlabeled dataset): unsupervised feature extraction /
@@ -142,12 +165,13 @@ def compute_pca(X_train, y_train):
     print "Extracting the top %d eigenfaces from %d faces" % (
         N_COMPONENTS, X_train.shape[0])
     pca = RandomizedPCA(n_components=N_COMPONENTS, whiten=True).fit(X_train)
+    #pca = MiniBatchSparsePCA(n_components=N_COMPONENTS).fit(X_train)
     return pca
 
 
 def plot_gallery(images, titles, h, w, n_row=3, n_col=4):
     """Helper function to plot a gallery of portraits"""
-    pl.figure(figsize=(1.8 * n_col, 2.4 * n_row))
+    pl.Figure(figsize=(1.8 * n_col, 2.4 * n_row))
     pl.subplots_adjust(bottom=0, left=.01, right=.99, top=.90, hspace=.35)
     for i in range(n_row * n_col):
         pl.subplot(n_row, n_col, i + 1)
@@ -155,6 +179,7 @@ def plot_gallery(images, titles, h, w, n_row=3, n_col=4):
         pl.title(titles[i], size=12)
         pl.xticks(())
         pl.yticks(())
+    #pl.show()
 
 
 # plot the result of the prediction on a portion of the test set
@@ -174,24 +199,23 @@ def plot_results(pca, X_test, y_pred, y_test):
     # plot the gallery of the most significative eigenfaces
     eigenfaces = pca.components_.reshape((N_COMPONENTS, H, W))
     eigenface_titles = ["eigenface %d" % i for i in range(eigenfaces.shape[0])]
-    plot_gallery(eigenfaces, eigenface_titles, H, W)
-
-    #pl.show()
+    plot_gallery(eigenfaces, eigenface_titles, H, W, 3, 5)
 
 
-def gen_classifier(X_train, y_train):
+def gen_classifier(X_train=None, y_train=None):
     if isfile(PCA_PICKLE):
         print "Loading PCA from file"
         pca = pickle.load(open(PCA_PICKLE, 'rb'))
-    else:
+    elif X_train is not None and y_train is not None:
         print "Computing PCA and saving"
         pca = compute_pca(X_train, y_train)
         pickle.dump(pca, open(PCA_PICKLE, 'wb'))
-
-    print "Projecting the input data on the eigenfaces orthonormal basis"
-    X_train_pca = pca.transform(X_train)
+    else:
+        print "Files to not exist, but no training data given"
+        os.abort()
 
     if isfile(CLASSIFIER_PICKLE):
+        print "Loading classifier from file"
         clf = pickle.load(open(CLASSIFIER_PICKLE, 'rb'))
     else:
         print "Fitting the classifier to the training set"
@@ -200,6 +224,8 @@ def gen_classifier(X_train, y_train):
             'gamma': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.1],
         }
 
+        print "Projecting the input data on the eigenfaces orthonormal basis"
+        X_train_pca = pca.transform(X_train)
         clf = GridSearchCV(SVC(kernel='rbf', class_weight='auto'), param_grid)
         clf = clf.fit(X_train_pca, y_train)
         print "Best estimator found by grid search:"
@@ -224,24 +250,50 @@ def evaluate(pca, clf, X_test, y_test):
     plot_results(pca, X_test, y_pred, y_test)
 
 
-def main():
-    if isfile(DATA_PICKLE) and isfile(LABELS_PICKLE):
-        X = pickle.load(open(DATA_PICKLE, 'rb'))
-        y = pickle.load(open(LABELS_PICKLE, 'rb'))
-    else:
-        X, y = load_data((H, W))
-        pickle.dump(X, open(DATA_PICKLE, 'wb'))
-        pickle.dump(y, open(LABELS_PICKLE, 'wb'))
-
+def test():
+    X, y = load_data_or_unpickle()
     print "Total dataset size:"
     print "n_samples: %d" % X.shape[0]
     print "n_features: %d" % X.shape[1]
     print "n_classes: %d" % N_CLASSES
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
-
     pca, clf = gen_classifier(X_train, y_train)
     evaluate(pca, clf, X_test, y_test)
 
+
+def mirror_mirror():
+    pca, clf = gen_classifier()
+    cam = cv2.VideoCapture(0)
+
+    last_smile = False
+
+    while True:
+        ret, img = cam.read()
+        if not ret:
+            continue
+
+        gray = cv2.cvtColor(img, cv.CV_BGR2GRAY)
+        faces = detect_and_scale_face(gray)
+        if not faces:
+            last_smile = False
+            continue
+
+        for scaled in faces:
+            test_x = exposure.equalize_hist(scaled.reshape((1, -1)))
+            face_pca = pca.transform(test_x)
+            pred = clf.predict(face_pca)
+            smiling = (pred == HAPPY_LABEL)
+            if smiling:
+                if last_smile:
+                    cv2.imshow('image', scaled)
+                else:
+                    last_smile = True
+                    break
+            else:
+                last_smile = False
+        cv2.waitKey(1)
+
 if __name__ == '__main__':
-    main()
+    mirror_mirror()
+    #test()
