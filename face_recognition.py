@@ -15,6 +15,7 @@ import matplotlib.pyplot as pl
 import cPickle as pickle
 import re
 from itertools import izip, chain
+import subprocess as sb
 
 import matplotlib
 matplotlib.use('MacOSX')
@@ -41,7 +42,8 @@ EMOTIONS = {0: "neutral",
             4: "fear",
             5: "happy",
             6: "sadness",
-            7: "surprise"}
+            7: "surprise",
+            8: "yawning"}
 FACE_CASCADE_XML = 'haarcascade_frontalface_default.xml'
 face_cascade = cv2.CascadeClassifier(FACE_CASCADE_XML)
 
@@ -50,11 +52,10 @@ LABELS_PICKLE = 'y.pkl'
 PCA_PICKLE = 'pca.pkl'
 CLASSIFIER_PICKLE = 'clf.pkl'
 
-HAPPY_LABEL = 1
-OTHER_LABEL = 0
 LEARN_IMG_SIZE = 64
-N_COMPONENTS = 15
-TARGET_NAMES = ('other', 'happy')
+N_COMPONENTS = 50
+TARGET_NAMES = ('other', 'happy', 'yawning')
+OTHER_LABEL, HAPPY_LABEL, YAWNING_LABEL = range(len(TARGET_NAMES))
 N_CLASSES = len(TARGET_NAMES)
 H, W = (LEARN_IMG_SIZE,) * 2
 
@@ -77,6 +78,11 @@ def load_ck_emotion_faces():
             with open(emo_file, 'rU') as f:
                 emotions.append(int(float(string.strip(f.readline()))))
             image_files.append(img_path)
+
+    for root, dirs, files in os.walk('yawning'):
+        for img_file in files:
+            image_files.append(os.path.join(root, img_file))
+            emotions.append(8)
     return emotions, image_files
 
 
@@ -108,23 +114,31 @@ def load_data(dim):
 account for relative pixel positions.
 
     """
-    emotion_files, image_files = load_ck_emotion_faces()
+    emotions, image_files = load_ck_emotion_faces()
 
     happy_faces = [(i, HAPPY_LABEL)
-                   for i, e in izip(image_files, emotion_files)
+                   for i, e in izip(image_files, emotions)
                    if e == 5]
+    yawning_faces = [(i, YAWNING_LABEL)
+                     for i, e in izip(image_files, emotions)
+                     if e == 8]
     other_faces = [(i, OTHER_LABEL)
-                   for i, e in izip(image_files, emotion_files)
+                   for i, e in izip(image_files, emotions)
                    if e != 5]
 
-    n_samples = len(happy_faces) + len(other_faces)
+    n_samples = len(happy_faces) + len(other_faces) + len(yawning_faces)
     n_features = dim[0] * dim[1]
 
     X = np.empty((n_samples, n_features))
     y = np.empty((n_samples))
     idx = 0
-    for fimg, emo in chain(happy_faces, other_faces):
-        img = io.imread(fimg)
+    for fimg, emo in chain(happy_faces, other_faces, yawning_faces):
+        try:
+            img = io.imread(fimg)
+        except IOError:
+            print "Could not load {}".format(fimg)
+            continue
+
         faces = detect_and_scale_face(img)
         if not faces or len(faces) > 1:
             logging.info("{} faces detected in {}.".format(len(faces), fimg))
@@ -172,7 +186,7 @@ def plot_gallery(images, titles, h, w, n_row=3, n_col=4):
         pl.title(titles[i], size=12)
         pl.xticks(())
         pl.yticks(())
-    #pl.show()
+    pl.show()
 
 
 # plot the result of the prediction on a portion of the test set
@@ -192,7 +206,7 @@ def plot_results(pca, X_test, y_pred, y_test):
     # plot the gallery of the most significative eigenfaces
     eigenfaces = pca.components_.reshape((N_COMPONENTS, H, W))
     eigenface_titles = ["eigenface %d" % i for i in range(eigenfaces.shape[0])]
-    plot_gallery(eigenfaces, eigenface_titles, H, W, 3, 5)
+    plot_gallery(eigenfaces, eigenface_titles, H, W, 10, 5)
 
 
 def gen_classifier(X_train=None, y_train=None):
@@ -204,7 +218,7 @@ def gen_classifier(X_train=None, y_train=None):
         pca = compute_pca(X_train, y_train)
         pickle.dump(pca, open(PCA_PICKLE, 'wb'))
     else:
-        print "Files to not exist, but no training data given"
+        print "Files do not exist, but no training data given"
         os.abort()
 
     if isfile(CLASSIFIER_PICKLE):
@@ -259,8 +273,7 @@ def mirror_mirror():
     pca, clf = gen_classifier()
     cam = cv2.VideoCapture(0)
 
-    last_smile = False
-
+    last_emo = []
     while True:
         ret, img = cam.read()
         if not ret:
@@ -269,23 +282,19 @@ def mirror_mirror():
         gray = cv2.cvtColor(img, cv.CV_BGR2GRAY)
         faces = detect_and_scale_face(gray)
         if not faces:
-            last_smile = False
             continue
 
         for scaled in faces:
             test_x = exposure.equalize_hist(scaled.reshape((1, -1)))
             face_pca = pca.transform(test_x)
-            pred = clf.predict(face_pca)
-            smiling = (pred == HAPPY_LABEL)
-            if smiling:
-                if last_smile:
-                    cv2.imshow('image', scaled)
-                else:
-                    last_smile = True
-                    break
-            else:
-                last_smile = False
-        cv2.waitKey(1)
+            pred = int(clf.predict(face_pca)[0])
+            last_emo.append(pred)
+
+            if len(last_emo) == 4:
+                last_emo.pop(0)
+                if last_emo[0] != OTHER_LABEL and \
+                   np.all(np.array(last_emo) == last_emo[0]):
+                    sb.call(['say', TARGET_NAMES[pred]])
 
 if __name__ == '__main__':
     mirror_mirror()
