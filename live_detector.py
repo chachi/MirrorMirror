@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-from mplayer import MPlayer
 import cv
 import cv2
 import os
@@ -8,12 +7,10 @@ from os.path import isfile
 
 import logging
 import cPickle as pickle
-import subprocess as sb
-import time
-import random
 
 import skimage.exposure as exposure
 from skimage.transform import resize
+import mirrorvideo
 
 # Display progress logs on stdout
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
@@ -79,49 +76,6 @@ def classify_emotions(pca, clf, faces):
     return emotions
 
 
-MPlayer.populate()
-mp = MPlayer()
-video_dir = '/Users/jack/data/MirrorMirror/'
-smiling_dir = os.path.join(video_dir, 'Smiling')
-yawning_dir = os.path.join(video_dir, 'Yawning')
-
-
-def list_videos(folder):
-    is_mov = lambda s: os.path.splitext(s)[1] == '.mov'
-    join_func = lambda s: os.path.join(folder, s)
-    return map(join_func, filter(is_mov, os.listdir(folder)))
-
-smiling_videos = list_videos(smiling_dir)
-yawning_videos = list_videos(yawning_dir)
-
-
-def get_video(emo):
-    if emo == HAPPY_LABEL:
-        videos = smiling_videos
-    else:
-        videos = yawning_videos
-    return videos[random.randint(0, len(videos))]
-
-
-def saw_emotion(emo):
-    if emo == OTHER_LABEL:
-        print "OTHER_LABEL reported. That's a problem."
-        return
-
-    global mp
-    success = False
-    fname = get_video(emo)
-    while not success:
-        try:
-            mp.loadfile(fname)
-            success = True
-        except IOError:
-            mp = MPlayer()
-    print "Video playing, sleeping."
-    time.sleep(50)
-    print "Ready again."
-
-
 def mirror_mirror():
     pca, clf = load_classifier()
     cam = cv2.VideoCapture(0)
@@ -158,7 +112,7 @@ def mirror_mirror():
             last_emo = emotions[0]
 
         if streak >= 4 and last_emo != OTHER_LABEL:
-            saw_emotion(last_emo)
+            mirrorvideo.saw_emotion(last_emo)
             streak = 0
             last_emo = OTHER_LABEL
 
