@@ -6,7 +6,7 @@ import random
 TARGET_NAMES = ('other', 'happy', 'yawning')
 OTHER_LABEL, HAPPY_LABEL, YAWNING_LABEL = range(len(TARGET_NAMES))
 
-video_dir = '/Users/jack/data/MirrorMirror/'
+video_dir = '/home/pi/videos'
 smiling_dir = os.path.join(video_dir, 'Smiling')
 yawning_dir = os.path.join(video_dir, 'Yawning')
 
