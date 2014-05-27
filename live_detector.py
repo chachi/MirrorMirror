@@ -22,8 +22,6 @@ PCA_PICKLE = 'pca.pkl'
 CLASSIFIER_PICKLE = 'clf.pkl'
 
 LEARN_IMG_SIZE = 64
-TARGET_NAMES = ('other', 'happy', 'yawning')
-OTHER_LABEL, HAPPY_LABEL, YAWNING_LABEL = range(len(TARGET_NAMES))
 
 
 def detect_and_scale_face(img):
@@ -81,7 +79,11 @@ def mirror_mirror():
     cam.set(cv.CV_CAP_PROP_FRAME_WIDTH, 640)
     cam.set(cv.CV_CAP_PROP_FRAME_HEIGHT, 480)
 
-    last_emo = OTHER_LABEL
+    ctx = zmq.Context()
+    socket = ctx.socket(zmq.PUB)
+    socket.bind('tcp://*:1776')
+
+    last_emo = mirrorvideo.OTHER_LABEL
     streak = 0
     while True:
         ret, img = cam.read()
@@ -98,7 +100,7 @@ def mirror_mirror():
 
         matched = False
         for emo in emotions:
-            if emo == OTHER_LABEL:
+            if emo == mirrorvideo.OTHER_LABEL:
                 continue
             elif emo == last_emo:
                 matched = True
@@ -110,10 +112,11 @@ def mirror_mirror():
             streak = 0
             last_emo = emotions[0]
 
-        if streak >= 4 and last_emo != OTHER_LABEL:
+        if streak >= 4 and last_emo != mirrorvideo.OTHER_LABEL:
+            socket.send(str(emo))
             mirrorvideo.play_emotion_video(last_emo)
             streak = 0
-            last_emo = OTHER_LABEL
+            last_emo = mirrorvideo.OTHER_LABEL
 
 if __name__ == '__main__':
     mirror_mirror()
