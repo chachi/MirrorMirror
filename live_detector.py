@@ -1,16 +1,15 @@
 #!/usr/bin/python
 
+import cPickle as pickle
 import cv
 import cv2
+import logging
+import mirrorvideo
 import os
 from os.path import isfile
-
-import logging
-import cPickle as pickle
-
 import skimage.exposure as exposure
 from skimage.transform import resize
-import mirrorvideo
+import zmq
 
 # Display progress logs on stdout
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
@@ -112,7 +111,7 @@ def mirror_mirror():
             last_emo = emotions[0]
 
         if streak >= 4 and last_emo != OTHER_LABEL:
-            mirrorvideo.saw_emotion(last_emo)
+            mirrorvideo.play_emotion_video(last_emo)
             streak = 0
             last_emo = OTHER_LABEL
 

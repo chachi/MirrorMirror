@@ -31,7 +31,7 @@ def get_video(emo):
     return videos[random.randrange(len(videos))]
 
 
-def saw_emotion(emo):
+def play_emotion_video(emo):
     if emo == OTHER_LABEL:
         print "OTHER_LABEL reported. That's a problem."
         return
