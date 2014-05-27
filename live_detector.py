@@ -86,6 +86,7 @@ def mirror_mirror():
     last_emo = mirrorvideo.OTHER_LABEL
     streak = 0
     while True:
+        mirrorvideo.blank_screen()
         ret, img = cam.read()
         if not ret:
             continue

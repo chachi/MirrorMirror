@@ -20,6 +20,7 @@ def receive(host):
 
     # Register callback
     while True:
+        mirrorvideo.blank_screen()
         try:
             emo = socket.recv()
             print "received {}".format(emo)
