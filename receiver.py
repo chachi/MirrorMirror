@@ -22,6 +22,7 @@ def receive(host):
     while True:
         try:
             emo = socket.recv()
+            print "received {}".format(emo)
             mirrorvideo.play_emotion_video(int(emo))
         except:
             socket = connect(ctx)
