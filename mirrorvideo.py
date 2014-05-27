@@ -2,13 +2,10 @@ import os
 import subprocess as sb
 import time
 import random
-from mplayer import MPlayer
 
 TARGET_NAMES = ('other', 'happy', 'yawning')
 OTHER_LABEL, HAPPY_LABEL, YAWNING_LABEL = range(len(TARGET_NAMES))
 
-MPlayer.populate()
-mp = MPlayer()
 video_dir = '/Users/jack/data/MirrorMirror/'
 smiling_dir = os.path.join(video_dir, 'Smiling')
 yawning_dir = os.path.join(video_dir, 'Yawning')
@@ -31,6 +28,14 @@ def get_video(emo):
     return videos[random.randrange(len(videos))]
 
 
+def blank_screen():
+    sb.call(['xset', 's', 'activate'])
+
+
+def play_video(f):
+    sb.call(['omxplayer', '-b', f])
+
+
 def play_emotion_video(emo):
     if emo == OTHER_LABEL:
         print "OTHER_LABEL reported. That's a problem."
@@ -41,10 +46,12 @@ def play_emotion_video(emo):
     fname = get_video(emo)
     while not success:
         try:
-            mp.loadfile(fname)
+            blank_screen()
+            play_video(fname)
+            blank_screen()
             success = True
-        except IOError:
-            mp = MPlayer()
-            print "Video playing, sleeping."
-    time.sleep(50)
+        except:
+            pass
+    print "Video playing, sleeping."
+    time.sleep(30)
     print "Ready again."
