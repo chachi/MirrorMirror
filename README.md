@@ -1,3 +1,5 @@
+[![Code Health](https://landscape.io/github/chachi/MirrorMirror/master/landscape.png)](https://landscape.io/github/chachi/MirrorMirror/master)
+
 MirrorMirror
 ============
 
