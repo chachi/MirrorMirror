@@ -172,7 +172,6 @@ def compute_pca(X_train, y_train):
     print "Extracting the top %d eigenfaces from %d faces" % (
         N_COMPONENTS, X_train.shape[0])
     pca = RandomizedPCA(n_components=N_COMPONENTS, whiten=True).fit(X_train)
-    #pca = MiniBatchSparsePCA(n_components=N_COMPONENTS).fit(X_train)
     return pca
 
 
@@ -298,4 +297,4 @@ def mirror_mirror():
 
 if __name__ == '__main__':
     mirror_mirror()
-    #test()
+    # test()
