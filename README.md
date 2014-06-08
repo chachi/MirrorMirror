@@ -35,7 +35,15 @@ To-Do
 - [X] Image capture
 - [X] Facial detection
 - [X] Add facial expression learning
-- [ ] Add hooks for emotion reactions
-- [ ] Distributed node communication
+- [X] Add hooks for emotion reactions
+- [X] Distributed node communication
 
+RPi Setup
+---------
 
+- /etc/network/interfaces needs "wireless-power off" to disable wireless power saving
+- Add restart, fix_network scripts to cron
+- Add /etc/init.d script
+- Install unclutter package to hide cursor
+- Rebuild/install zmq with pip
+- Copy virtualenv
