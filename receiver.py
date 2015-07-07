@@ -23,8 +23,8 @@ def receive(host):
     while socket is None:
         try:
             socket = connect(ctx, host)
-        except:
-            print "Failed to connect, trying again."
+        except Exception as e:
+            print "Failed to connect with exception {}, trying again.".format(e)
 
     # Register callback
     while True:
@@ -34,7 +34,8 @@ def receive(host):
             emo = socket.recv()
             print "received {}".format(emo)
             mirrorvideo.play_emotion_video(int(emo))
-        except:
+        except Exception as e:
+            print "Failed with {}. Retrying.".format(e)
             socket = connect(ctx, host)
 
 
