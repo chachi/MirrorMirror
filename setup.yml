@@ -1,0 +1,79 @@
+---
+- hosts: all
+  tasks:
+    - include_vars: secret_vars.yml
+    - name: install packages
+      sudo: true
+      apt:
+        name={{ item }}
+        state=present
+        update_cache=true
+      with_items:
+        - gfortran
+        - libatlas-base-dev
+        - libblas-dev
+        - liblapack-dev
+        - libopencv-dev
+        - python-dev
+        - python-setuptools
+        - unclutter
+
+    # Remove Ubuntu pip, it's too old
+    - apt: name=python-pip state=absent
+      sudo: true
+
+    # easy_install pip
+    - easy_install: name=pip
+      sudo: true
+
+    - name: install python packages
+      sudo: true
+      pip:
+        name={{ item }}
+      with_items:
+        - virtualenv
+
+    - name: add mirror user
+      sudo: true
+      user:
+        name=mirror
+        password={{ mirror_password }}
+        createhome=yes
+        generate_ssh_key=yes
+
+    - name: authorize ssh key
+      sudo: true
+      authorized_key:
+        user=mirror
+        key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+
+- hosts: all
+  remote_user: mirror
+  tasks:
+    - copy:
+        src=deploy_key
+        dest=~/.ssh/deploy_key
+        mode=0600
+
+    - name: clone source
+      git:
+        repo=git@github.com:chachi/MirrorMirror
+        dest=~/MirrorMirror
+        accept_hostkey=yes
+        key_file=~/.ssh/deploy_key
+
+    - name: install numpy
+      pip:
+        name={{ item.key }}
+        version={{ item.value }}
+        virtualenv=~/MirrorMirror/venv/
+      with_dict:
+        numpy: 1.8.1
+        Cython: 0.20.1
+
+    - name: install mirror requirements.txt
+      pip:
+        requirements=~/MirrorMirror/requirements.txt
+        virtualenv=~/MirrorMirror/venv/
+        extra_args="--allow-external PIL"
