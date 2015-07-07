@@ -1,0 +1,8 @@
+network={
+ssid="{{ wifi_ssid }}"
+psk="{{ wifi_password }}"
+proto=RSN
+key_mgmt=WPA-PSK
+pairwise=CCMP
+auth_alg=OPEN
+}

@@ -10,6 +10,7 @@
         update_cache=true
       with_items:
         - gfortran
+        - iw
         - libatlas-base-dev
         - libblas-dev
         - liblapack-dev
@@ -17,6 +18,8 @@
         - python-dev
         - python-setuptools
         - unclutter
+        - wpasupplicant
+        - wireless-tools
 
     # Remove Ubuntu pip, it's too old
     - apt: name=python-pip state=absent
@@ -77,3 +80,19 @@
         requirements=~/MirrorMirror/requirements.txt
         virtualenv=~/MirrorMirror/venv/
         extra_args="--allow-external PIL"
+
+- hosts: all
+  vars:
+    wifi_static_ip: 192.168.1.1 # Default, should be overriden by host var.
+  tasks:
+    - name: interfaces config
+      sudo: true
+      template:
+        src=interfaces_template
+        dest=/etc/network/interfaces
+
+    - name: wpa config
+      sudo: true
+      template:
+        src=wpa_template
+        dest=/etc/wpa_supplicant/wpa_supplicant.conf
