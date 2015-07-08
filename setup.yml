@@ -7,6 +7,13 @@
       hostname:
         name="{{ inventory_hostname }}"
 
+    - name: update /etc/hosts
+      sudo: true
+      lineinfile:
+        line="127.0.1.1	{{ inventory_hostname }}"
+        regexp="127.0.1.1	.*"
+        dest=/etc/hosts
+
     - name: install packages
       sudo: true
       apt:
@@ -42,11 +49,17 @@
       with_items:
         - virtualenv
 
-    - name: add mirror user
+    - name: remove mirror user
       sudo: true
       user:
         name=mirror
-        password={{ mirror_password }}
+        state=absent
+
+    - name: update pi user
+      sudo: true
+      user:
+        name=pi
+        password="{{ mirror_password }}"
         createhome=yes
         generate_ssh_key=yes
 
@@ -56,18 +69,17 @@
         user={{ item }}
         key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
       with_items:
-        - mirror
         - "{{ ansible_user_id }}"
 
     - name: fix autologin
+      sudo: true
       lineinfile:
         regexp="^autologin-user=.?$"
-        line="autologin-user=mirror"
+        line="autologin-user=pi"
         dest=/etc/lightdm/lightdm.conf
 
 
 - hosts: all
-  remote_user: mirror
   tasks:
     - copy:
         src=deploy_key
@@ -97,8 +109,6 @@
         extra_args="--allow-external PIL"
 
 - hosts: all
-  vars:
-    wifi_static_ip: 192.168.1.1 # Default, should be overriden by host var.
   tasks:
     - name: interfaces config
       sudo: true
@@ -113,7 +123,6 @@
         dest=/etc/wpa_supplicant/wpa_supplicant.conf
 
 - hosts: detector
-  remote_user: mirror
   name: start detector
   tasks:
   - name: configure supervisord
@@ -124,8 +133,14 @@
       owner=root group=root mode=0600
     notify:
       - restart detector
+  - name: restart detector
+    sudo: true
+    supervisorctl:
+      name=mirror_detector
+      state=present
+
   handlers:
-    - name: restart apache
+    - name: restart detector
       sudo: true
       supervisorctl:
         name=mirror_detector
@@ -133,7 +148,6 @@
 
 
 - hosts: all
-  remote_user: mirror
   name: start receiver
   tasks:
   - name: configure supervisord
@@ -144,8 +158,13 @@
       owner=root group=root mode=0600
     notify:
       - restart receiver
+  - name: restart receiver
+    sudo: true
+    supervisorctl:
+      name=mirror_receiver
+      state=present
   handlers:
-    - name: restart apache
+    - name: restart receiver
       sudo: true
       supervisorctl:
         name=mirror_receiver
