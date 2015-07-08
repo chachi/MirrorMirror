@@ -27,14 +27,24 @@
         - libblas-dev
         - liblapack-dev
         - libopencv-dev
+        - libzmq-dev
         - python-dev
-        - python-opencv
-        - python-zmq
         - python-setuptools
         - supervisor
         - unclutter
         - wpasupplicant
         - wireless-tools
+
+    - name: remove packages
+      sudo: true
+      apt:
+        name={{ item }}
+        state=absent
+        update_cache=true
+      with_items:
+        - python-numpy
+        - python-opencv
+        - python-zmq
 
     # Remove Ubuntu pip, it's too old
     - apt: name=python-pip state=absent
@@ -133,20 +143,18 @@
       src=templates/mirror_detector.conf.j2
       dest=/etc/supervisor/conf.d/mirror_detector.conf
       owner=root group=root mode=0600
-    notify:
-      - restart detector
+
   - name: mirror_detector present
     sudo: true
     supervisorctl:
       name=mirror_detector
       state=present
 
-  handlers:
-    - name: restart detector
-      sudo: true
-      supervisorctl:
-        name=mirror_detector
-        state=restarted
+  - name: restart detector
+    sudo: true
+    supervisorctl:
+      name=mirror_detector
+      state=restarted
 
 
 - hosts: all
@@ -158,16 +166,15 @@
       src=templates/mirror_receiver.conf.j2
       dest=/etc/supervisor/conf.d/mirror_receiver.conf
       owner=root group=root mode=0600
-    notify:
-      - restart receiver
+
   - name: mirror_receiver present
     sudo: true
     supervisorctl:
       name=mirror_receiver
       state=present
-  handlers:
-    - name: restart receiver
-      sudo: true
-      supervisorctl:
-        name=mirror_receiver
-        state=restarted
+
+  - name: restart receiver
+    sudo: true
+    supervisorctl:
+      name=mirror_receiver
+      state=restarted
