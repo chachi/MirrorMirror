@@ -43,6 +43,10 @@ To-Do
 RPi Setup
 ---------
 
+- ssh-copy-id to each RPi
+- sudo raspi-config
+  1. Expand filesystem
+  3. Enable boot to desktop
 - /etc/network/interfaces needs "wireless-power off" to disable wireless power saving
 - Add restart, fix_network scripts to cron
 - Add /etc/init.d script
