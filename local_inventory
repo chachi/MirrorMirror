@@ -1,0 +1,6 @@
+[detector]
+mirror1 ansible_ssh_user=pi ansible_ssh_host=10.0.1.101
+
+[receivers]
+mirror2 ansible_ssh_user=pi ansible_ssh_host=10.0.1.102
+mirror3 ansible_ssh_user=pi ansible_ssh_host=10.0.1.103
