@@ -1,9 +1,9 @@
 [program:mirror_receiver]
-command=/home/mirror/MirrorMirror/bin/python
-directory=/home/mirror/MirrorMirror
-environment=PYTHONPATH=/var/www/rendor/venv/bin
+command=/home/pi/MirrorMirror/venv/bin/python
+directory=/home/pi/MirrorMirror
+environment=PYTHONPATH=/home/pi/MirrorMirror/venv/bin
 
-user=ubuntu
+user=pi
 numprocs=1
 autostart=true
 autorestart=true
