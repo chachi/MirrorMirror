@@ -113,13 +113,13 @@
     - name: interfaces config
       sudo: true
       template:
-        src=interfaces_template
+        src=templates/interfaces.j2
         dest=/etc/network/interfaces
 
     - name: wpa config
       sudo: true
       template:
-        src=wpa_template
+        src=templates/wpa.j2
         dest=/etc/wpa_supplicant/wpa_supplicant.conf
 
 - hosts: detector
