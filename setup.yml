@@ -28,6 +28,8 @@
         - liblapack-dev
         - libopencv-dev
         - python-dev
+        - python-opencv
+        - python-zmq
         - python-setuptools
         - supervisor
         - unclutter
@@ -133,7 +135,7 @@
       owner=root group=root mode=0600
     notify:
       - restart detector
-  - name: restart detector
+  - name: mirror_detector present
     sudo: true
     supervisorctl:
       name=mirror_detector
@@ -158,7 +160,7 @@
       owner=root group=root mode=0600
     notify:
       - restart receiver
-  - name: restart receiver
+  - name: mirror_receiver present
     sudo: true
     supervisorctl:
       name=mirror_receiver
