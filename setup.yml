@@ -2,6 +2,11 @@
 - hosts: all
   tasks:
     - include_vars: secret_vars.yml
+    - name: update hostname
+      sudo: true
+      hostname:
+        name="{{ inventory_hostname }}"
+
     - name: install packages
       sudo: true
       apt:
@@ -17,6 +22,7 @@
         - libopencv-dev
         - python-dev
         - python-setuptools
+        - supervisor
         - unclutter
         - wpasupplicant
         - wireless-tools
@@ -47,8 +53,17 @@
     - name: authorize ssh key
       sudo: true
       authorized_key:
-        user=mirror
+        user={{ item }}
         key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+      with_items:
+        - mirror
+        - "{{ ansible_user_id }}"
+
+    - name: fix autologin
+      lineinfile:
+        regexp="^autologin-user=.?$"
+        line="autologin-user=mirror"
+        dest=/etc/lightdm/lightdm.conf
 
 
 - hosts: all
@@ -96,3 +111,42 @@
       template:
         src=wpa_template
         dest=/etc/wpa_supplicant/wpa_supplicant.conf
+
+- hosts: detector
+  remote_user: mirror
+  name: start detector
+  tasks:
+  - name: configure supervisord
+    sudo: true
+    template:
+      src=templates/mirror_detector.conf.j2
+      dest=/etc/supervisor/conf.d/mirror_detector.conf
+      owner=root group=root mode=0600
+    notify:
+      - restart detector
+  handlers:
+    - name: restart apache
+      sudo: true
+      supervisorctl:
+        name=mirror_detector
+        state=restarted
+
+
+- hosts: all
+  remote_user: mirror
+  name: start receiver
+  tasks:
+  - name: configure supervisord
+    sudo: true
+    template:
+      src=templates/mirror_receiver.conf.j2
+      dest=/etc/supervisor/conf.d/mirror_receiver.conf
+      owner=root group=root mode=0600
+    notify:
+      - restart receiver
+  handlers:
+    - name: restart apache
+      sudo: true
+      supervisorctl:
+        name=mirror_receiver
+        state=restarted
