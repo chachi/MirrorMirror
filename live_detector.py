@@ -107,11 +107,13 @@ def mirror_mirror():
         ret, img = cam.read()
         if not ret:
             continue
-        for i in xrange(5): cam.grab()
+        img = cv2.resize(img, (320, 240), interpolation=cv2.INTER_NEAREST)
 
         faces = detect_and_scale_face(img)
         lg.info("{} faces seen".format(len(faces)))
         if not faces:
+            for i in xrange(5):
+                cam.grab()
             continue
 
         emotions = classify_emotions(pca, clf, faces)
