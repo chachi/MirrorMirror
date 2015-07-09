@@ -21,6 +21,7 @@
         state=present
         update_cache=true
       with_items:
+        - libavformat53
         - gfortran
         - iw
         - libatlas-base-dev
@@ -120,8 +121,28 @@
         virtualenv=~/MirrorMirror/venv/
         extra_args="--allow-external PIL"
 
+    - name: download opencv
+      get_url:
+        url=https://github.com/Nolaan/libopencv_24/releases/download/OpenCV_2.4.10.2/libopencv_2.4.10.2.deb.zip
+        dest=/home/pi/libopencv_2.4.10.2.deb.zip
+        sha256sum=1b8f7c25caddfa52a7cfb5979c49e17605c912f73c3fe8fa11ec1d56877ba6e1
+
+    - name: download opencv libs
+      unarchive:
+        src=libopencv_2.4.10.2.deb.zip
+        dest=/home/pi
+        copy=no
+
+    - name: dpkg opencv
+      sudo: true
+      shell: dpkg -i /home/pi/libopencv_2.4.10.2.deb
+
+    - name: cp opencv
+      shell: "cp /usr/local/lib/python2.7/site-packages/* ~/MirrorMirror/venv/lib/python2.7/site-packages/"
+
 - hosts: all
   tasks:
+    - include_vars: secret_vars.yml
     - name: interfaces config
       sudo: true
       template:
@@ -133,6 +154,10 @@
       template:
         src=templates/wpa.j2
         dest=/etc/wpa_supplicant/wpa_supplicant.conf
+    - name: copy videos
+      copy:
+        src=videos
+        dest=/home/pi/
 
 - hosts: detector
   name: start detector
@@ -157,7 +182,7 @@
       state=restarted
 
 
-- hosts: all
+- hosts: receivers
   name: start receiver
   tasks:
   - name: configure supervisord
