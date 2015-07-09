@@ -3,17 +3,19 @@
 import cPickle as pickle
 import cv
 import cv2
-import logging
+import logging as lg
 import mirrorvideo
 import os
 from os.path import isfile
 import skimage.exposure as exposure
 from skimage.transform import resize
 import zmq
+import time
+import subprocess as sb
+
 
 # Display progress logs on stdout
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
-
+lg.basicConfig(level=lg.INFO, format='%(asctime)s %(message)s')
 
 FACE_CASCADE_XML = 'haarcascade_frontalface_default.xml'
 face_cascade = cv2.CascadeClassifier(FACE_CASCADE_XML)
@@ -74,8 +76,22 @@ def classify_emotions(pca, clf, faces):
 
 
 def mirror_mirror():
+    while not mirrorvideo.blank_screen():
+        lg.info("Window not blank. Sleeping.")
+        time.sleep(5)
+
+    lg.info("mirror_mirror")
     pca, clf = load_classifier()
-    cam = cv2.VideoCapture(0)
+    for i in xrange(5):
+        cam = cv2.VideoCapture(0)
+        if cam.isOpened():
+            break
+        lg.info("Cam not open. Sleeping.")
+        time.sleep(5)
+    if not cam.isOpened():
+        sb.call(['sudo', 'reboot'])
+
+    lg.info("Camera is open.")
     cam.set(cv.CV_CAP_PROP_FRAME_WIDTH, 640)
     cam.set(cv.CV_CAP_PROP_FRAME_HEIGHT, 480)
 
@@ -85,13 +101,16 @@ def mirror_mirror():
 
     last_emo = mirrorvideo.OTHER_LABEL
     streak = 0
+    lg.info("Starting captures..")
     while True:
         mirrorvideo.blank_screen()
         ret, img = cam.read()
         if not ret:
             continue
+        for i in xrange(5): cam.grab()
 
         faces = detect_and_scale_face(img)
+        lg.info("{} faces seen".format(len(faces)))
         if not faces:
             continue
 
@@ -113,7 +132,9 @@ def mirror_mirror():
             streak = 0
             last_emo = emotions[0]
 
-        if streak >= 4 and last_emo != mirrorvideo.OTHER_LABEL:
+	lg.info("streak at {}".format(streak))
+        if streak >= 2 and last_emo != mirrorvideo.OTHER_LABEL:
+            lg.info("saw a emotion")
             socket.send(str(emo))
             mirrorvideo.play_emotion_video(last_emo)
             streak = 0

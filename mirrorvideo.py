@@ -3,6 +3,7 @@ import subprocess as sb
 import time
 import random
 import Tkinter as tk
+import logging as lg
 
 TARGET_NAMES = ('other', 'happy', 'yawning')
 OTHER_LABEL, HAPPY_LABEL, YAWNING_LABEL = range(len(TARGET_NAMES))
@@ -30,14 +31,22 @@ def get_video(emo):
         return ''
     return videos[random.randrange(len(videos))]
 
-BLANK_WINDOW = tk.Tk()
+BLANK_WINDOW = None
 
 def blank_screen():
+    global BLANK_WINDOW
+    if BLANK_WINDOW is None:
+        try:
+            BLANK_WINDOW = tk.Tk()
+        except Exception as e:
+            lg.warning("Exception: {}".format(e))
+            return False
     BLANK_WINDOW.deiconify()
     BLANK_WINDOW.configure(bg='#000')
     BLANK_WINDOW.attributes('-fullscreen', True)
     BLANK_WINDOW.wm_attributes('-topmost', True)
     BLANK_WINDOW.lift()
+    return True
 
 
 def play_video(f):
