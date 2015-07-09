@@ -2,6 +2,7 @@ import os
 import subprocess as sb
 import time
 import random
+import Tkinter as tk
 
 TARGET_NAMES = ('other', 'happy', 'yawning')
 OTHER_LABEL, HAPPY_LABEL, YAWNING_LABEL = range(len(TARGET_NAMES))
@@ -25,11 +26,18 @@ def get_video(emo):
         videos = smiling_videos
     else:
         videos = yawning_videos
+    if not videos:
+        return ''
     return videos[random.randrange(len(videos))]
 
+BLANK_WINDOW = tk.Tk()
 
 def blank_screen():
-    sb.call(['xset', 's', 'activate'])
+    BLANK_WINDOW.deiconify()
+    BLANK_WINDOW.configure(bg='#000')
+    BLANK_WINDOW.attributes('-fullscreen', True)
+    BLANK_WINDOW.wm_attributes('-topmost', True)
+    BLANK_WINDOW.lift()
 
 
 def play_video(f):
