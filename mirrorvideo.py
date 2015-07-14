@@ -1,17 +1,24 @@
 import os
 import subprocess as sb
-import time
 import random
 import Tkinter as tk
 import logging as lg
+from PIL import Image, ImageTk
+
 
 TARGET_NAMES = ('other', 'happy', 'yawning')
 OTHER_LABEL, HAPPY_LABEL, YAWNING_LABEL = range(len(TARGET_NAMES))
 
+IMAGE_DIR = '/home/pi/images'
 VIDEO_DIR = '/home/pi/videos'
 SMILING_DIR = os.path.join(VIDEO_DIR, 'Smiling')
 YAWNING_DIR = os.path.join(VIDEO_DIR, 'Yawning')
 
+
+def list_images(folder):
+    """List all the files within a directory"""
+    return [os.path.join(folder, s)
+            for s in os.listdir(folder)]
 
 def list_videos(folder):
     """List all the .mov videos within a directory"""
@@ -21,6 +28,7 @@ def list_videos(folder):
 
 SMILING_VIDEOS = list_videos(SMILING_DIR)
 YAWNING_VIDEOS = list_videos(YAWNING_DIR)
+IMAGES = list_images(IMAGE_DIR)
 
 
 def get_video(emo):
@@ -37,12 +45,17 @@ def get_video(emo):
 class OverlayWindow(object):
     root = None
     hidden = False
+    label = None
 
     @classmethod
     def create(cls):
         if cls.root is None:
             try:
                 cls.root = tk.Tk()
+                cls.root.attributes('-fullscreen', True)
+                cls.root.wm_attributes('-topmost', True)
+                cls.root.lift()
+
                 cls.root.bind('<space>', hide_window)
                 cls.root.bind('<Escape>', hide_window)
             except Exception as e:
@@ -65,15 +78,35 @@ class OverlayWindow(object):
             cls.root.withdraw()
             cls.hidden = True
 
+    @classmethod
+    def show_image(cls):
+        if cls.label is None:
+            cls.label = tk.Label(cls.root)
+            cls.label.pack(side='bottom', fill='both', expand='yes')
+        img_path = IMAGES[random.randrange(len(IMAGES))]
+        img = ImageTk.PhotoImage(Image.open(img_path))
+        cls.label.config(image=img)
+        cls.label.image = img
+        cls.label.update()
+
+    @classmethod
+    def update(cls):
+        cls.root = cls.create()
+        if cls.root is not None and not cls.hidden:
+            if IMAGES:
+                cls.show_image()
+            else:
+                cls.blank()
+        return cls.root
+
+
 def hide_window(_):
     """Hide the OverlayWindow.root to allow user interaction on the desktop."""
     OverlayWindow.hide()
 
 def blank_screen():
     """Update the window overlay."""
-    root = OverlayWindow.create()
-    OverlayWindow.blank()
-    return root
+    return OverlayWindow.update()
 
 
 def play_video(f):
