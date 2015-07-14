@@ -33,47 +33,58 @@ def get_video(emo):
         return ''
     return videos[random.randrange(len(videos))]
 
-BLANK_WINDOW = None
-HIDDEN = False
+
+class OverlayWindow(object):
+    root = None
+    hidden = False
+
+    @classmethod
+    def create(cls):
+        if cls.root is None:
+            try:
+                cls.root = tk.Tk()
+                cls.root.bind('<space>', hide_window)
+                cls.root.bind('<Escape>', hide_window)
+            except Exception as e:
+                lg.warning("Exception: {}".format(e))
+                return False
+        return cls.root
+
+    @classmethod
+    def blank(cls):
+        if cls.root and not cls.hidden:
+            cls.root.deiconify()
+            cls.root.configure(bg='#000')
+            cls.root.attributes('-fullscreen', True)
+            cls.root.wm_attributes('-topmost', True)
+            cls.root.lift()
+
+    @classmethod
+    def hide(cls):
+        if cls.root is not None:
+            cls.root.withdraw()
+            cls.hidden = True
 
 def hide_window(_):
-    """Hide the BLANK_WINDOW to allow user interaction on the desktop."""
-    global HIDDEN
-    if BLANK_WINDOW is not None:
-        BLANK_WINDOW.withdraw()
-        HIDDEN = True
-
+    """Hide the OverlayWindow.root to allow user interaction on the desktop."""
+    OverlayWindow.hide()
 
 def blank_screen():
     """Update the window overlay."""
-    global BLANK_WINDOW
-    if BLANK_WINDOW is None:
-        try:
-            BLANK_WINDOW = tk.Tk()
-        except Exception as e:
-            lg.warning("Exception: {}".format(e))
-            return False
-    BLANK_WINDOW.bind('<space>', hide_window)
-    BLANK_WINDOW.bind('<Escape>', hide_window)
-    if not HIDDEN:
-        BLANK_WINDOW.deiconify()
-        BLANK_WINDOW.configure(bg='#000')
-        BLANK_WINDOW.attributes('-fullscreen', True)
-        BLANK_WINDOW.wm_attributes('-topmost', True)
-        BLANK_WINDOW.lift()
-    return BLANK_WINDOW
+    root = OverlayWindow.create()
+    OverlayWindow.blank()
+    return root
 
 
 def play_video(f):
-    sb.call(['omxplayer', '-b', f])
+    #sb.call(['omxplayer', '-b', f])
+    pass
 
 
 def play_emotion_video(emo):
     if emo == OTHER_LABEL:
         print "OTHER_LABEL reported. That's a problem."
         return
-
-    global mp
     success = False
     fname = get_video(emo)
     while not success:
