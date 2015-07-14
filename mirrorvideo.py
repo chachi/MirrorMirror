@@ -140,8 +140,7 @@ def blank_screen():
 
 
 def play_video(f):
-    #sb.call(['omxplayer', '-b', f])
-    pass
+    sb.call(['omxplayer', '-b', f])
 
 
 def play_emotion_video(emo):
