@@ -1,7 +1,7 @@
 [program:mirror_detector]
 command=/home/pi/MirrorMirror/venv/bin/python live_detector.py
 directory=/home/pi/MirrorMirror
-environment=PYTHONPATH=/home/pi/MirrorMirror/venv/bin
+environment=PYTHONPATH="/home/pi/MirrorMirror/venv/bin",DISPLAY=":0.0"
 
 user=pi
 numprocs=1
