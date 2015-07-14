@@ -7,6 +7,9 @@ import mirrorvideo
 import time
 from datetime import datetime
 from dotenv import load_dotenv
+import logging as lg
+
+lg.basicConfig(level=lg.INFO, format='%(asctime)s %(message)s')
 
 IMAGE_TIMEOUT = 1               # Seconds
 
@@ -14,7 +17,7 @@ IMAGE_TIMEOUT = 1               # Seconds
 def connect(ctx, host):
     socket = ctx.socket(zmq.SUB)
     socket.setsockopt(zmq.SUBSCRIBE, '')
-    print "Connecting to {}".format(host)
+    lg.info("Connecting to {}".format(host))
     socket.connect('tcp://{}:1776'.format(host))
     return socket
 
@@ -26,7 +29,7 @@ def receive(host):
     # Open ZMQ context
     ctx = zmq.Context()
 
-    print "Receiving from {}".format(host)
+    lg.info("Receiving from {}".format(host))
     class local:
         """Inner class to encapsulate nonlocal variables.  Hack around
         scoping.
@@ -39,7 +42,8 @@ def receive(host):
         try:
             local.socket = connect(ctx, host)
         except Exception as e:
-            print "Failed to connect with exception {}, trying again.".format(e)
+            lg.info(
+                "Failed to connect with exception {}, trying again.".format(e))
     root = mirrorvideo.blank_screen()
 
     def poll_events():
@@ -53,13 +57,13 @@ def receive(host):
             window.after(0, poll_events)
             try:
                 emo = local.socket.recv(flags=zmq.NOBLOCK)
-                print "received {}".format(emo)
+                lg.info("received {}".format(emo))
                 mirrorvideo.play_emotion_video(int(emo))
             except zmq.ZMQError as e:
                 if e.errno == zmq.EAGAIN:
                     return
                 else:
-                    print "Failed with {}. Retrying.".format(e)
+                    lg.info("Failed with {}. Retrying.".format(e))
                     local.socket = connect(ctx, host)
 
     root.after(0, poll_events)
