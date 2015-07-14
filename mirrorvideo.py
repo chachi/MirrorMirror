@@ -15,9 +15,9 @@ YAWNING_DIR = os.path.join(VIDEO_DIR, 'Yawning')
 
 def list_videos(folder):
     """List all the .mov videos within a directory"""
-    is_mov = lambda s: os.path.splitext(s)[1] == '.mov'
-    join_func = lambda s: os.path.join(folder, s)
-    return map(join_func, filter(is_mov, os.listdir(folder)))
+    return [os.path.join(folder, s)
+            for s in os.listdir(folder)
+            if os.path.splitext(s)[1] == '.mov']
 
 SMILING_VIDEOS = list_videos(SMILING_DIR)
 YAWNING_VIDEOS = list_videos(YAWNING_DIR)
