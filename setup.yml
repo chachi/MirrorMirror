@@ -178,6 +178,13 @@
         archive=yes
         checksum=yes
 
+    - name: copy config
+      synchronize:
+        src=default_config.txt
+        dest=/home/pi/config.txt
+        archive=yes
+        checksum=yes
+
 - hosts: detector
   name: start detector
   tasks:
