@@ -32,6 +32,8 @@
         - python-dev
         - python-setuptools
         - supervisor
+        - tk8.5-dev
+        - tcl8.5-dev
         - unclutter
         - wpasupplicant
         - wireless-tools
@@ -105,6 +107,9 @@
         dest=~/MirrorMirror
         accept_hostkey=yes
         key_file=~/.ssh/deploy_key
+        force=yes
+        update=yes
+        version=master
 
     - name: install numpy
       pip:
@@ -185,6 +190,14 @@
 - hosts: receivers
   name: start receiver
   tasks:
+  - name: copy restart script
+    copy:
+      src=restart_detector.sh
+      dest=/home/pi/
+      owner=pi
+      group=pi
+      mode=ug+rwx
+
   - name: configure supervisord
     sudo: true
     template:

@@ -1,0 +1,1 @@
+sudo supervisorctl restart mirror_receiver
