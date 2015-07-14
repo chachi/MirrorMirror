@@ -125,7 +125,6 @@
       pip:
         requirements=~/MirrorMirror/requirements.txt
         virtualenv=~/MirrorMirror/venv/
-        extra_args="--allow-external PIL"
 
     - name: download opencv
       get_url:
