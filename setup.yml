@@ -159,10 +159,24 @@
       template:
         src=templates/wpa.j2
         dest=/etc/wpa_supplicant/wpa_supplicant.conf
+
     - name: copy videos
-      copy:
-        src=videos
-        dest=/home/pi/
+      synchronize:
+        src=videos/
+        dest=/home/pi/videos/
+        recursive=yes
+        delete=yes
+        archive=yes
+        checksum=yes
+
+    - name: copy images
+      synchronize:
+        src=images/
+        dest=/home/pi/images/
+        recursive=yes
+        delete=yes
+        archive=yes
+        checksum=yes
 
 - hosts: detector
   name: start detector
