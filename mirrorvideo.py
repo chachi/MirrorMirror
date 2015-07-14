@@ -32,21 +32,35 @@ def get_video(emo):
     return videos[random.randrange(len(videos))]
 
 BLANK_WINDOW = None
+HIDDEN = False
+
+def hide_window(event):
+    lg.info('hiding window')
+    global BLANK_WINDOW
+    global HIDDEN
+    if BLANK_WINDOW is not None:
+        BLANK_WINDOW.withdraw()
+        HIDDEN = True
+
 
 def blank_screen():
     global BLANK_WINDOW
+    global HIDDEN
     if BLANK_WINDOW is None:
         try:
             BLANK_WINDOW = tk.Tk()
         except Exception as e:
             lg.warning("Exception: {}".format(e))
             return False
-    BLANK_WINDOW.deiconify()
-    BLANK_WINDOW.configure(bg='#000')
-    BLANK_WINDOW.attributes('-fullscreen', True)
-    BLANK_WINDOW.wm_attributes('-topmost', True)
-    BLANK_WINDOW.lift()
-    return True
+    BLANK_WINDOW.bind('<space>', hide_window)
+    BLANK_WINDOW.bind('<Escape>', hide_window)
+    if not HIDDEN:
+        BLANK_WINDOW.deiconify()
+        BLANK_WINDOW.configure(bg='#000')
+        BLANK_WINDOW.attributes('-fullscreen', True)
+        BLANK_WINDOW.wm_attributes('-topmost', True)
+        BLANK_WINDOW.lift()
+    return BLANK_WINDOW
 
 
 def play_video(f):
@@ -69,6 +83,4 @@ def play_emotion_video(emo):
             success = True
         except:
             pass
-    print "Video playing, sleeping."
-    time.sleep(30)
     print "Ready again."
