@@ -37,6 +37,7 @@
         - unclutter
         - wpasupplicant
         - wireless-tools
+        - x11-xserver-utils
 
     - name: remove packages
       sudo: true
@@ -218,6 +219,18 @@
       owner=pi
       group=pi
       mode=ug+rwx
+
+  
+  - name: disable screenblanking
+    sudo: true
+    lineinfile:
+      line="{{ item }}"
+      dest=/etc/X11/xinit/xinitrc
+      state=present
+    with_items:
+      - "xset s off         # don't activate screensaver"
+      - "xset -dpms         # disable DPMS (Energy Star) features."
+      - "xset s noblank     # don't blank the video device"
 
   - name: configure supervisord
     sudo: true
