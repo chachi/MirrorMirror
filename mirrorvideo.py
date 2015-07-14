@@ -9,12 +9,6 @@ from PIL import Image, ImageTk
 TARGET_NAMES = ('other', 'happy', 'yawning')
 OTHER_LABEL, HAPPY_LABEL, YAWNING_LABEL = range(len(TARGET_NAMES))
 
-IMAGE_DIR = '/home/pi/images'
-VIDEO_DIR = '/home/pi/videos'
-SMILING_DIR = os.path.join(VIDEO_DIR, 'Smiling')
-YAWNING_DIR = os.path.join(VIDEO_DIR, 'Yawning')
-
-
 def list_images(folder):
     """List all the files within a directory"""
     return [os.path.join(folder, s)
@@ -26,17 +20,31 @@ def list_videos(folder):
             for s in os.listdir(folder)
             if os.path.splitext(s)[1] == '.mov']
 
-SMILING_VIDEOS = list_videos(SMILING_DIR)
-YAWNING_VIDEOS = list_videos(YAWNING_DIR)
-IMAGES = list_images(IMAGE_DIR)
+
+class MediaRepository(object):
+    smiling_videos = None
+    yawning_videos = None
+    images = None
+
+    @classmethod
+    def init(cls):
+        IMAGE_DIR = os.environ.get('IMAGES_DIR', '/home/pi/images')
+        VIDEO_DIR = os.environ.get('VIDEOS_DIR', '/home/pi/videos')
+        SMILING_DIR = os.path.join(VIDEO_DIR, 'Smiling')
+        YAWNING_DIR = os.path.join(VIDEO_DIR, 'Yawning')
+
+        cls.smiling_videos = list_videos(SMILING_DIR)
+        cls.yawning_videos = list_videos(YAWNING_DIR)
+        cls.images = list_images(IMAGE_DIR)
+
 
 
 def get_video(emo):
     """Get a random video for the given emotion."""
     if emo == HAPPY_LABEL:
-        videos = SMILING_VIDEOS
+        videos = MediaRepository.smiling_videos
     else:
-        videos = YAWNING_VIDEOS
+        videos = MediaRepository.yawning_videos
     if not videos:
         return ''
     return videos[random.randrange(len(videos))]
@@ -84,7 +92,7 @@ class OverlayWindow(object):
             cls.label = tk.Label(cls.root)
             cls.label.pack(side='bottom', fill='both', expand='yes')
 
-        img_path = IMAGES[random.randrange(len(IMAGES))]
+        img_path = MediaRepository.images[random.randrange(len(MediaRepository.images))]
         orig = Image.open(img_path)
 
         target_width = cls.label.winfo_width()
@@ -115,7 +123,7 @@ class OverlayWindow(object):
     def update(cls):
         cls.root = cls.create()
         if cls.root is not None and not cls.hidden:
-            if IMAGES:
+            if MediaRepository.images:
                 cls.show_image()
             else:
                 cls.blank()

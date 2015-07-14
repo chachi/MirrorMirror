@@ -1,11 +1,14 @@
 #!/usr/bin/python
 
+import os
 import sys
 import zmq
 import mirrorvideo
 import time
 from datetime import datetime
-import logging as lg
+from dotenv import load_dotenv
+
+IMAGE_TIMEOUT = 1               # Seconds
 
 
 def connect(ctx, host):
@@ -43,7 +46,7 @@ def receive(host):
         window = mirrorvideo.OverlayWindow.create()
 
         now = datetime.now()
-        if (now - local.last_update).total_seconds() > 1:
+        if (now - local.last_update).total_seconds() > IMAGE_TIMEOUT:
             mirrorvideo.blank_screen()
             local.last_update = now
         if window:
@@ -63,9 +66,22 @@ def receive(host):
     root.mainloop()
 
 
+def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-detector',
+                        default='mirror1.local', action='store')
+    parser.add_argument('-env',
+                        default='/home/pi/Desktop/config.txt',
+                        action='store')
+    args = parser.parse_args()
+
+    load_dotenv(args.env)
+    global IMAGE_TIMEOUT
+    IMAGE_TIMEOUT = float(os.environ.get('IMAGE_TIMEOUT', 1))
+    mirrorvideo.MediaRepository.init()
+    receive(args.detector)
+
+
 if __name__ == '__main__':
-    if len(sys.argv) == 2:
-        host = sys.argv[1]
-    else:
-        host = 'mirror1.local'
-    receive(host)
+    main()
