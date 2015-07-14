@@ -8,25 +8,27 @@ import logging as lg
 TARGET_NAMES = ('other', 'happy', 'yawning')
 OTHER_LABEL, HAPPY_LABEL, YAWNING_LABEL = range(len(TARGET_NAMES))
 
-video_dir = '/home/pi/videos'
-smiling_dir = os.path.join(video_dir, 'Smiling')
-yawning_dir = os.path.join(video_dir, 'Yawning')
+VIDEO_DIR = '/home/pi/videos'
+SMILING_DIR = os.path.join(VIDEO_DIR, 'Smiling')
+YAWNING_DIR = os.path.join(VIDEO_DIR, 'Yawning')
 
 
 def list_videos(folder):
+    """List all the .mov videos within a directory"""
     is_mov = lambda s: os.path.splitext(s)[1] == '.mov'
     join_func = lambda s: os.path.join(folder, s)
     return map(join_func, filter(is_mov, os.listdir(folder)))
 
-smiling_videos = list_videos(smiling_dir)
-yawning_videos = list_videos(yawning_dir)
+SMILING_VIDEOS = list_videos(SMILING_DIR)
+YAWNING_VIDEOS = list_videos(YAWNING_DIR)
 
 
 def get_video(emo):
+    """Get a random video for the given emotion."""
     if emo == HAPPY_LABEL:
-        videos = smiling_videos
+        videos = SMILING_VIDEOS
     else:
-        videos = yawning_videos
+        videos = YAWNING_VIDEOS
     if not videos:
         return ''
     return videos[random.randrange(len(videos))]
@@ -34,9 +36,8 @@ def get_video(emo):
 BLANK_WINDOW = None
 HIDDEN = False
 
-def hide_window(event):
-    lg.info('hiding window')
-    global BLANK_WINDOW
+def hide_window(_):
+    """Hide the BLANK_WINDOW to allow user interaction on the desktop."""
     global HIDDEN
     if BLANK_WINDOW is not None:
         BLANK_WINDOW.withdraw()
@@ -44,8 +45,8 @@ def hide_window(event):
 
 
 def blank_screen():
+    """Update the window overlay."""
     global BLANK_WINDOW
-    global HIDDEN
     if BLANK_WINDOW is None:
         try:
             BLANK_WINDOW = tk.Tk()
