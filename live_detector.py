@@ -105,7 +105,6 @@ def mirror_mirror():
         img = cv2.resize(img, (320, 240), interpolation=cv2.INTER_NEAREST)
 
         faces = detect_and_scale_face(img)
-        lg.info("{} faces seen".format(len(faces)))
         if not faces:
             for i in xrange(5):
                 cam.grab()
@@ -129,13 +128,12 @@ def mirror_mirror():
             streak = 0
             last_emo = emotions[0]
 
-        lg.info("streak at {}".format(streak))
         if streak >= 2 and last_emo != mirrorvideo.OTHER_LABEL:
-            lg.info("saw a emotion")
+            lg.info("Saw a {} face".format(str(emo)))
             socket.send(str(emo))
-            mirrorvideo.play_emotion_video(last_emo)
             streak = 0
             last_emo = mirrorvideo.OTHER_LABEL
+            time.sleep(10)
 
 if __name__ == '__main__':
     mirror_mirror()
