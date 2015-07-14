@@ -4,6 +4,8 @@ import sys
 import zmq
 import mirrorvideo
 import time
+from datetime import datetime
+import logging as lg
 
 
 def connect(ctx, host):
@@ -28,6 +30,8 @@ def receive(host):
 
         """
         socket = None
+        last_update = datetime.min
+
     while local.socket is None:
         try:
             local.socket = connect(ctx, host)
@@ -36,7 +40,12 @@ def receive(host):
     root = mirrorvideo.blank_screen()
 
     def poll_events():
-        window = mirrorvideo.blank_screen()
+        window = mirrorvideo.OverlayWindow.create()
+
+        now = datetime.now()
+        if (now - local.last_update).total_seconds() > 1:
+            mirrorvideo.blank_screen()
+            local.last_update = now
         if window:
             window.after(0, poll_events)
             try:
