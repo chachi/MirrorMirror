@@ -132,7 +132,7 @@
         dest=/home/pi/libopencv_2.4.10.2.deb.zip
         sha256sum=1b8f7c25caddfa52a7cfb5979c49e17605c912f73c3fe8fa11ec1d56877ba6e1
 
-    - name: download opencv libs
+    - name: unzip opencv libs
       unarchive:
         src=libopencv_2.4.10.2.deb.zip
         dest=/home/pi
