@@ -193,7 +193,7 @@
   - name: copy restart script
     copy:
       src=restart_detector.sh
-      dest=/home/pi/
+      dest=/home/pi/Desktop/
       owner=pi
       group=pi
       mode=ug+rwx
