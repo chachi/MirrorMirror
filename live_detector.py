@@ -76,18 +76,14 @@ def classify_emotions(pca, clf, faces):
 
 
 def mirror_mirror():
-    while not mirrorvideo.blank_screen():
-        lg.info("Window not blank. Sleeping.")
-        time.sleep(5)
-
     lg.info("mirror_mirror")
     pca, clf = load_classifier()
-    for i in xrange(5):
+    for i in xrange(6):
         cam = cv2.VideoCapture(0)
         if cam.isOpened():
             break
         lg.info("Cam not open. Sleeping.")
-        time.sleep(5)
+        time.sleep(10)
     if not cam.isOpened():
         sb.call(['sudo', 'reboot'])
 
@@ -103,7 +99,6 @@ def mirror_mirror():
     streak = 0
     lg.info("Starting captures..")
     while True:
-        mirrorvideo.blank_screen()
         ret, img = cam.read()
         if not ret:
             continue
@@ -134,7 +129,7 @@ def mirror_mirror():
             streak = 0
             last_emo = emotions[0]
 
-	lg.info("streak at {}".format(streak))
+        lg.info("streak at {}".format(streak))
         if streak >= 2 and last_emo != mirrorvideo.OTHER_LABEL:
             lg.info("saw a emotion")
             socket.send(str(emo))
