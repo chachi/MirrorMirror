@@ -75,6 +75,11 @@ def classify_emotions(pca, clf, faces):
     return emotions
 
 
+def clear_buffer(cam):
+    for i in xrange(7):
+        cam.grab()
+
+
 def mirror_mirror():
     lg.info("mirror_mirror")
     pca, clf = load_classifier()
@@ -106,8 +111,7 @@ def mirror_mirror():
 
         faces = detect_and_scale_face(img)
         if not faces:
-            for i in xrange(5):
-                cam.grab()
+            clear_buffer(cam)
             continue
 
         emotions = classify_emotions(pca, clf, faces)
@@ -133,6 +137,7 @@ def mirror_mirror():
             socket.send(str(emo))
             streak = 0
             last_emo = mirrorvideo.OTHER_LABEL
+            clear_buffer(cam)
             time.sleep(10)
 
 if __name__ == '__main__':
