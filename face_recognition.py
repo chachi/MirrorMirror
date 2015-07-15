@@ -32,7 +32,8 @@ from sklearn.decomposition import RandomizedPCA
 from sklearn.svm import SVC
 
 # Display progress logs on stdout
-lg.basicConfig(level=lg.INFO, format='%(asctime)s [%(levelname)-8s] %(message)s')
+lg.basicConfig(level=lg.INFO,
+               format='[%(levelname)-8s] %(asctime)s %(message)s')
 
 
 EMOTIONS = {0: "neutral",

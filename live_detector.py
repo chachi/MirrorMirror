@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 
 # Display progress logs on stdout
 lg.basicConfig(level=lg.INFO,
-               format='%(asctime)s [%(levelname)-8s] %(message)s')
+               format='[%(levelname)-8s] %(asctime)s %(message)s')
 
 FACE_CASCADE_XML = 'haarcascade_frontalface_default.xml'
 face_cascade = cv2.CascadeClassifier(FACE_CASCADE_XML)
