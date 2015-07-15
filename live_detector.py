@@ -12,6 +12,7 @@ from skimage.transform import resize
 import zmq
 import time
 import subprocess as sb
+from dotenv import load_dotenv
 
 
 # Display progress logs on stdout
@@ -25,6 +26,7 @@ PCA_PICKLE = 'pca.pkl'
 CLASSIFIER_PICKLE = 'clf.pkl'
 
 LEARN_IMG_SIZE = 64
+VIDEO_PAUSE = 10.0
 
 
 def detect_and_scale_face(img):
@@ -139,7 +141,16 @@ def mirror_mirror():
             streak = 0
             last_emo = mirrorvideo.OTHER_LABEL
             clear_buffer(cam)
-            time.sleep(10)
+            time.sleep(float(VIDEO_PAUSE))
 
 if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-env',
+                        default='/home/pi/Desktop/config.txt',
+                        action='store')
+    args = parser.parse_args()
+    load_dotenv(args.env)
+
+    VIDEO_PAUSE = os.environ.get('VIDEO_PAUSE', VIDEO_PAUSE)
     mirror_mirror()

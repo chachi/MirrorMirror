@@ -1,4 +1,5 @@
 IMAGES_DIR=/home/pi/images/
 VIDEOS_DIR=/home/pi/videos/
 IMAGE_TIMEOUT=3
+VIDEO_PAUSE=10
 
