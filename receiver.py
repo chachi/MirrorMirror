@@ -36,11 +36,13 @@ def receive(host):
 
         """
         socket = None
+        poller = zmq.Poller()
         last_update = datetime.min
 
     while local.socket is None:
         try:
             local.socket = connect(ctx, host)
+            local.poller.register(local.socket, zmq.POLLIN)
         except Exception as e:
             lg.info(
                 "Failed to connect with exception {}, trying again.".format(e))
@@ -56,7 +58,10 @@ def receive(host):
         if window:
             window.after(0, poll_events)
             try:
-                emo = local.socket.recv(flags=zmq.NOBLOCK)
+                events = dict(local.poller.poll(1000))
+                if not local.socket in events:
+                    return
+                emo = events[local.socket]
                 lg.info("received {}".format(emo))
                 mirrorvideo.play_emotion_video(int(emo))
             except zmq.ZMQError as e:
