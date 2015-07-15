@@ -9,7 +9,8 @@ from datetime import datetime
 from dotenv import load_dotenv
 import logging as lg
 
-lg.basicConfig(level=lg.INFO, format='%(asctime)s %(message)s')
+lg.basicConfig(level=lg.INFO,
+               format='%(asctime)s [%(levelname)-8s] %(message)s')
 
 IMAGE_TIMEOUT = 1               # Seconds
 

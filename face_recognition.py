@@ -10,7 +10,7 @@ import os
 from os.path import isfile
 import string
 
-import logging
+import logging as lg
 import matplotlib.pyplot as pl
 import cPickle as pickle
 import re
@@ -32,7 +32,7 @@ from sklearn.decomposition import RandomizedPCA
 from sklearn.svm import SVC
 
 # Display progress logs on stdout
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+lg.basicConfig(level=lg.INFO, format='%(asctime)s [%(levelname)-8s] %(message)s')
 
 
 EMOTIONS = {0: "neutral",
@@ -141,7 +141,7 @@ account for relative pixel positions.
 
         faces = detect_and_scale_face(img)
         if not faces or len(faces) > 1:
-            logging.info("{} faces detected in {}.".format(len(faces), fimg))
+            lg.info("{} faces detected in {}.".format(len(faces), fimg))
             continue
         X[idx, :] = faces[0].reshape((1, -1))
         y[idx] = emo

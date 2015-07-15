@@ -15,7 +15,8 @@ import subprocess as sb
 
 
 # Display progress logs on stdout
-lg.basicConfig(level=lg.INFO, format='%(asctime)s %(message)s')
+lg.basicConfig(level=lg.INFO,
+               format='%(asctime)s [%(levelname)-8s] %(message)s')
 
 FACE_CASCADE_XML = 'haarcascade_frontalface_default.xml'
 face_cascade = cv2.CascadeClassifier(FACE_CASCADE_XML)
@@ -41,7 +42,7 @@ def detect_and_scale_face(img):
     for face_bounds in faces:
         x, y, w, h = face_bounds
         if w != h:
-            print "UNSQUARE FACE DETECTED"
+            lg.error("UNSQUARE FACE DETECTED")
             continue
         scaled = resize(img[y:y+h, x:x+w], (LEARN_IMG_SIZE, LEARN_IMG_SIZE))
         out.append(scaled)
@@ -51,17 +52,17 @@ def detect_and_scale_face(img):
 
 def load_classifier(X_train=None, y_train=None):
     if isfile(PCA_PICKLE):
-        print "Loading PCA from file"
+        lg.info("Loading PCA from file")
         pca = pickle.load(open(PCA_PICKLE, 'rb'))
     else:
-        print "PCA file does not exist"
+        lg.error("PCA file does not exist")
         os.abort()
 
     if isfile(CLASSIFIER_PICKLE):
-        print "Loading classifier from file"
+        lg.info("Loading classifier from file")
         clf = pickle.load(open(CLASSIFIER_PICKLE, 'rb'))
     else:
-        print "Class file does not exist"
+        lg.error("Class file does not exist")
         os.abort()
     return pca, clf
 
