@@ -2,6 +2,16 @@
 - hosts: all
   tasks:
     - include_vars: secret_vars.yml
+    - name: mirror_receiver stopped
+      sudo: true
+      ignore_errors: yes
+      supervisorctl:
+        name={{ item }}
+        state=stopped
+      with_items:
+        - mirror_receiver
+        - mirror_detector
+
     - name: update hostname
       sudo: true
       hostname:
@@ -90,7 +100,7 @@
     - name: fix autologin
       sudo: true
       lineinfile:
-        regexp="^autologin-user=.?$"
+        regexp="autologin-user=.*"
         line="autologin-user=pi"
         dest=/etc/lightdm/lightdm.conf
 
@@ -219,7 +229,6 @@
       group=pi
       mode=ug+rwx
 
-  
   - name: disable screenblanking
     sudo: true
     lineinfile:
@@ -230,6 +239,14 @@
       - "xset s off         # don't activate screensaver"
       - "xset -dpms         # disable DPMS (Energy Star) features."
       - "xset s noblank     # don't blank the video device"
+
+  - name: lightdm xserver command
+    sudo: true
+    lineinfile:
+      line="xserver-command=X -s 0 -dpms"
+      dest=/etc/lightdm/lightdm.conf
+      state=present
+      insertafter="^[SeatDefaults].*"
 
   - name: configure supervisord
     sudo: true
