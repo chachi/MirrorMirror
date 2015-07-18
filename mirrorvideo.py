@@ -15,10 +15,10 @@ def list_images(folder):
             for s in os.listdir(folder)]
 
 def list_videos(folder):
-    """List all the .mov videos within a directory"""
+    """List all the .mp4 videos within a directory"""
     return [os.path.join(folder, s)
             for s in os.listdir(folder)
-            if os.path.splitext(s)[1] == '.mov']
+            if os.path.splitext(s)[1] == '.mp4']
 
 
 class MediaRepository(object):
