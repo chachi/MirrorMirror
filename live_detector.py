@@ -141,7 +141,7 @@ def mirror_mirror():
             streak = 0
             last_emo = mirrorvideo.OTHER_LABEL
             clear_buffer(cam)
-            time.sleep(float(VIDEO_PAUSE))
+            time.sleep(VIDEO_PAUSE)
 
 if __name__ == '__main__':
     import argparse
@@ -152,5 +152,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     load_dotenv(args.env)
 
-    VIDEO_PAUSE = os.environ.get('VIDEO_PAUSE', VIDEO_PAUSE)
+    VIDEO_PAUSE = float(os.environ.get('VIDEO_PAUSE', VIDEO_PAUSE))
+    lg.info('VIDEO_PAUSE = {}'.format(VIDEO_PAUSE))
     mirror_mirror()

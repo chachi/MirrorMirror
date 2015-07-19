@@ -148,12 +148,12 @@ def play_emotion_video(emo):
         lg.error("OTHER_LABEL reported. That's a problem.")
         return
     success = False
+    lg.info('Playing video for emotion {}'.format(emo))
     fname = get_video(emo)
     while not success:
         try:
-            blank_screen()
+            lg.info('Playing video file {}'.format(fname))
             play_video(fname)
-            blank_screen()
             success = True
         except Exception as exc:
             lg.warning("Exception caught while playing video: {}".format(exc))
