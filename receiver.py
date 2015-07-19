@@ -60,11 +60,11 @@ def receive(host):
             window.after(0, poll_events)
             try:
                 events = dict(local.poller.poll(1000))
-                if not local.socket in events:
-                    return
-                emo = events[local.socket]
-                lg.info("received {}".format(emo))
-                mirrorvideo.play_emotion_video(int(emo))
+                if local.socket in events and \
+                   events[local.socket] == zmq.POLLIN:
+                    emo = local.socket.recv(zmq.NOBLOCK)
+                    lg.info("received {}".format(emo))
+                    mirrorvideo.play_emotion_video(int(emo))
             except zmq.ZMQError as e:
                 if e.errno == zmq.EAGAIN:
                     return
