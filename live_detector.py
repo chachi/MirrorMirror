@@ -36,7 +36,7 @@ def detect_and_scale_face(img):
     if channels > 1:
         img = cv2.cvtColor(img, cv.CV_BGR2GRAY)
 
-    faces = face_cascade.detectMultiScale(img, 1.3, 5)
+    faces = face_cascade.detectMultiScale(img, 1.2, 5)
     if not len(faces):
         return []
 
@@ -110,11 +110,12 @@ def mirror_mirror():
         ret, img = cam.read()
         if not ret:
             continue
-        img = cv2.resize(img, (320, 240), interpolation=cv2.INTER_NEAREST)
+        img = cv2.resize(img, (240, 180), interpolation=cv2.INTER_NEAREST)
 
         faces = detect_and_scale_face(img)
         if not faces:
             clear_buffer(cam)
+            last_emo = mirrorvideo.OTHER_LABEL
             continue
 
         emotions = classify_emotions(pca, clf, faces)
@@ -129,19 +130,20 @@ def mirror_mirror():
                 matched = True
                 break
 
-        if matched:
+        if matched or last_emo == mirrorvideo.OTHER_LABEL:
             streak += 1
         else:
             streak = 0
             last_emo = emotions[0]
-
+            clear_buffer(cam)
+        last_emo = emo
         if streak >= 2 and last_emo != mirrorvideo.OTHER_LABEL:
             lg.info("Saw a {} face".format(str(emo)))
             socket.send(str(emo))
             streak = 0
             last_emo = mirrorvideo.OTHER_LABEL
-            clear_buffer(cam)
             time.sleep(VIDEO_PAUSE)
+            clear_buffer(cam)
 
 if __name__ == '__main__':
     import argparse
