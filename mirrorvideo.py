@@ -27,7 +27,7 @@ class MediaRepository(object):
     images = None
 
     @classmethod
-    def init(cls):
+    def init(cls, width, height):
         IMAGE_DIR = os.environ.get('IMAGES_DIR', '/home/pi/images')
         VIDEO_DIR = os.environ.get('VIDEOS_DIR', '/home/pi/videos')
         SMILING_DIR = os.path.join(VIDEO_DIR, 'Smiling')
@@ -35,8 +35,37 @@ class MediaRepository(object):
 
         cls.smiling_videos = list_videos(SMILING_DIR)
         cls.yawning_videos = list_videos(YAWNING_DIR)
-        cls.images = list_images(IMAGE_DIR)
+        image_paths = list_images(IMAGE_DIR)
 
+        cls.images = []
+        for img_path in image_paths:
+            lg.info('Loading image {}'.format(img_path))
+            orig = Image.open(img_path)
+
+            target_width = width
+            target_height = height
+            target_ratio = float(target_height) / target_width
+
+            curr_width = orig.size[0]
+            curr_height = orig.size[1]
+            curr_ratio = float(curr_height) / curr_width
+
+            # We resize the image the least amount possible to fill the
+            # screen in one dimension.
+            if target_ratio != curr_ratio:
+                if float(curr_height) / target_height > \
+                   float(curr_width) / target_width:
+                    target_width = target_height / curr_ratio
+                else:
+                    target_height = target_width * curr_ratio
+            img = ImageTk.PhotoImage(orig.resize((int(target_width),
+                                                  int(target_height)),
+                                                 Image.BILINEAR))
+            cls.images.append(img)
+
+    @classmethod
+    def get_random_image(cls):
+        return cls.images[random.randrange(len(cls.images))]
 
 
 def get_video(emo):
@@ -66,6 +95,8 @@ class OverlayWindow(object):
 
                 cls.root.bind('<space>', hide_window)
                 cls.root.bind('<Escape>', hide_window)
+                MediaRepository.init(cls.root.winfo_width(),
+                                     cls.root.winfo_height())
             except Exception as e:
                 lg.warning("Exception: {}".format(e))
                 return False
@@ -91,32 +122,7 @@ class OverlayWindow(object):
         if cls.label is None:
             cls.label = tk.Label(cls.root)
             cls.label.pack(side='bottom', fill='both', expand='yes')
-
-        img_path = MediaRepository.images[random.randrange(len(MediaRepository.images))]
-        orig = Image.open(img_path)
-
-        target_width = cls.label.winfo_width()
-        target_height = cls.label.winfo_height()
-        target_ratio = float(target_height) / target_width
-
-        curr_width = orig.size[0]
-        curr_height = orig.size[1]
-        curr_ratio = float(curr_height) / curr_width
-
-        # We resize the image the least amount possible to fill the
-        # screen in one dimension.
-        if target_ratio != curr_ratio:
-            if float(curr_height) / target_height > \
-               float(curr_width) / target_width:
-                target_width = target_height / curr_ratio
-            else:
-                target_height = target_width * curr_ratio
-
-        img = ImageTk.PhotoImage(orig.resize((int(target_width),
-                                              int(target_height)),
-                                             Image.BILINEAR))
-        cls.label.config(image=img, bg='#000')
-        cls.label.image = img
+        cls.label.config(image=MediaRepository.get_random_image(), bg='#000')
         cls.label.update()
 
     @classmethod

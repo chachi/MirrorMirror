@@ -89,7 +89,6 @@ def main():
     load_dotenv(args.env)
     global IMAGE_TIMEOUT
     IMAGE_TIMEOUT = float(os.environ.get('IMAGE_TIMEOUT', 1))
-    mirrorvideo.MediaRepository.init()
     receive(args.detector)
 
 
