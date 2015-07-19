@@ -51,6 +51,10 @@ def receive(host):
 
     def poll_events():
         window = mirrorvideo.OverlayWindow.create()
+        now = datetime.now()
+        if (now - local.last_update).total_seconds() > IMAGE_TIMEOUT:
+            mirrorvideo.blank_screen()
+            local.last_update = now
 
         if window:
             window.after(0, poll_events)
@@ -67,10 +71,6 @@ def receive(host):
                 else:
                     lg.info("Failed with {}. Retrying.".format(e))
                     local.socket = connect(ctx, host)
-        now = datetime.now()
-        if (now - local.last_update).total_seconds() > IMAGE_TIMEOUT:
-            mirrorvideo.blank_screen()
-            local.last_update = now
 
     root.after(0, poll_events)
     root.mainloop()
