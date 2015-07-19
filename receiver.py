@@ -63,7 +63,7 @@ def receive(host):
                     mirrorvideo.play_emotion_video(int(emo))
             except zmq.ZMQError as e:
                 if e.errno == zmq.EAGAIN:
-                    return
+                    pass
                 else:
                     lg.info("Failed with {}. Retrying.".format(e))
                     local.socket = connect(ctx, host)
